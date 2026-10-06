@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Palette, Layers, CheckCircle2, Sparkles, Sliders, Info, Eye } from 'lucide-react';
+import { Palette, Layers, CheckCircle2, Sparkles, Sliders, Lightbulb } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { soundFX } from '../utils/soundEffects';
 import { drawPresetSample, isolateChannel, toGrayscale } from '../utils/imageAlgorithms';
@@ -7,23 +7,18 @@ import { drawPresetSample, isolateChannel, toGrayscale } from '../utils/imageAlg
 export function Level2_ColorSpaces({ t, lang, onCompleteLevel, isCompleted, isUnlocked }) {
   const isRtl = lang === 'ar';
 
-  // Channel splitter mode: 'all' | 'r' | 'g' | 'b' | 'gray'
   const [activeChannel, setActiveChannel] = useState('all');
   const canvasRef = useRef(null);
 
-  // RGB color mixer sliders
-  const [mixR, setMixR] = useState(230);
-  const [mixG, setMixG] = useState(80);
-  const [mixB, setMixB] = useState(180);
+  const [mixR, setMixR] = useState(255);
+  const [mixG, setMixG] = useState(180);
+  const [mixB, setMixB] = useState(0);
 
-  // Calculated Grayscale luminance
   const calculatedGray = Math.round(0.299 * mixR + 0.587 * mixG + 0.114 * mixB);
 
-  // Quiz state
   const [q1Selected, setQ1Selected] = useState(null);
   const [quizSubmitted, setQuizSubmitted] = useState(false);
 
-  // Render sample on canvas whenever channel changes
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -31,10 +26,8 @@ export function Level2_ColorSpaces({ t, lang, onCompleteLevel, isCompleted, isUn
     canvas.height = 280;
     const ctx = canvas.getContext('2d');
 
-    // 1. Draw base vibrant test scene
     drawPresetSample(canvas, 'robot');
 
-    // 2. Manipulate channels if needed
     if (activeChannel !== 'all') {
       const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       if (activeChannel === 'gray') {
@@ -47,7 +40,7 @@ export function Level2_ColorSpaces({ t, lang, onCompleteLevel, isCompleted, isUn
   }, [activeChannel]);
 
   const handleQuizSubmit = () => {
-    if (q1Selected === 2) {
+    if (q1Selected === 1) {
       soundFX.playSuccess();
       soundFX.playLevelUp();
       confetti({
@@ -64,7 +57,7 @@ export function Level2_ColorSpaces({ t, lang, onCompleteLevel, isCompleted, isUn
   };
 
   return (
-    <section id="level2" className="py-16 px-4 max-w-7xl mx-auto space-y-12">
+    <section id="level2" className="py-16 px-4 max-w-7xl mx-auto space-y-10">
       {/* Level Header */}
       <div className="space-y-4 text-center sm:text-start">
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-950/80 border border-purple-500/40 text-purple-400 text-xs font-bold shadow-neon-purple">
@@ -79,40 +72,32 @@ export function Level2_ColorSpaces({ t, lang, onCompleteLevel, isCompleted, isUn
         </p>
       </div>
 
-      {/* Concept Breakdown: 3 Channels Tensor */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="p-6 rounded-2xl glass-panel border-rose-500/30 space-y-2">
-          <div className="flex items-center gap-2 text-rose-400 font-bold text-base">
-            <span className="w-3 h-3 rounded-full bg-rose-500 shadow-lg shadow-rose-500/50" />
-            <span>قناة الأحمر (Red Channel)</span>
-          </div>
-          <p className="text-slate-400 text-xs leading-relaxed">
-            مصفوفة ثنائية الأبعاد تحدد كمية اللون الأحمر المنبعث من شاشتك لكل بكسل (0 - 255).
-          </p>
+      {/* Everyday Life Analogy Box */}
+      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-purple-950/50 via-slate-900 to-slate-900 border-2 border-purple-500/40 shadow-neon-purple space-y-4">
+        <div className="flex items-center gap-3 text-purple-300 font-bold text-base sm:text-lg">
+          <Lightbulb className="w-6 h-6 text-amber-400 animate-bounce" />
+          <span>{t.level2.analogyTitle}</span>
         </div>
-
-        <div className="p-6 rounded-2xl glass-panel border-emerald-500/30 space-y-2">
-          <div className="flex items-center gap-2 text-emerald-400 font-bold text-base">
-            <span className="w-3 h-3 rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/50" />
-            <span>قناة الأخضر (Green Channel)</span>
+        <p className="text-slate-200 text-sm sm:text-base leading-relaxed">
+          {t.level2.analogyDesc}
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+          <div className="p-3 rounded-xl bg-slate-950 border border-rose-500/30 text-xs">
+            <span className="font-bold text-rose-400 block mb-1">🔴 كشاف الأحمر (Red)</span>
+            يتحكم بكمية الضوء الأحمر المنبعث من البكسل (من 0 إلى 255).
           </div>
-          <p className="text-slate-400 text-xs leading-relaxed">
-            العين البشرية بالغة الحساسية للضوء الأخضر، لذا يمتلك أعلى وزن في حسابات الرؤية!
-          </p>
-        </div>
-
-        <div className="p-6 rounded-2xl glass-panel border-blue-500/30 space-y-2">
-          <div className="flex items-center gap-2 text-blue-400 font-bold text-base">
-            <span className="w-3 h-3 rounded-full bg-blue-500 shadow-lg shadow-blue-500/50" />
-            <span>قناة الأزرق (Blue Channel)</span>
+          <div className="p-3 rounded-xl bg-slate-950 border border-emerald-500/30 text-xs">
+            <span className="font-bold text-emerald-400 block mb-1">🟢 كشاف الأخضر (Green)</span>
+            عينك حساسة جداً للون الأخضر، فله أكبر أثر على وضوح الصورة!
           </div>
-          <p className="text-slate-400 text-xs leading-relaxed">
-            المصفوفة الثالثة المسؤولة عن الضوء الأزرق؛ دمج القنوات الثلاث يصنع 16.7 مليون لون.
-          </p>
+          <div className="p-3 rounded-xl bg-slate-950 border border-blue-500/30 text-xs">
+            <span className="font-bold text-blue-400 block mb-1">🔵 كشاف الأزرق (Blue)</span>
+            الكشاف الثالث المكمل.. مزج التلاتة يصنع 16 مليون لون!
+          </div>
         </div>
       </div>
 
-      {/* Interactive Tool 1: Channel Isolator & Splitter */}
+      {/* Interactive Tool 1: Channel Isolator */}
       <div className="glass-panel-glow rounded-3xl p-6 lg:p-8 border border-purple-500/30 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
           <div>
@@ -123,14 +108,13 @@ export function Level2_ColorSpaces({ t, lang, onCompleteLevel, isCompleted, isUn
             <p className="text-xs text-slate-400 mt-1">{t.level2.splitterDesc}</p>
           </div>
 
-          {/* Mode Selector Buttons */}
           <div className="flex flex-wrap items-center gap-2">
             {[
-              { id: 'all', label: t.level2.allChannels, color: 'text-white border-slate-700' },
-              { id: 'r', label: t.level2.redOnly, color: 'text-rose-400 border-rose-500/40 bg-rose-950/30' },
-              { id: 'g', label: t.level2.greenOnly, color: 'text-emerald-400 border-emerald-500/40 bg-emerald-950/30' },
-              { id: 'b', label: t.level2.blueOnly, color: 'text-blue-400 border-blue-500/40 bg-blue-950/30' },
-              { id: 'gray', label: t.level2.grayscaleOnly, color: 'text-slate-300 border-slate-600 bg-slate-900' },
+              { id: 'all', label: t.level2.allChannels },
+              { id: 'r', label: t.level2.redOnly },
+              { id: 'g', label: t.level2.greenOnly },
+              { id: 'b', label: t.level2.blueOnly },
+              { id: 'gray', label: t.level2.grayscaleOnly },
             ].map((btn) => (
               <button
                 key={btn.id}
@@ -138,10 +122,10 @@ export function Level2_ColorSpaces({ t, lang, onCompleteLevel, isCompleted, isUn
                   soundFX.playClick();
                   setActiveChannel(btn.id);
                 }}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${btn.color} ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${
                   activeChannel === btn.id
-                    ? 'ring-2 ring-cyan-400 scale-105 shadow-neon-cyan font-black'
-                    : 'hover:opacity-90'
+                    ? 'bg-purple-600 border-purple-400 text-white shadow-neon-purple font-black scale-105'
+                    : 'bg-slate-900 border-slate-800 text-slate-300 hover:text-white'
                 }`}
               >
                 {btn.label}
@@ -151,59 +135,44 @@ export function Level2_ColorSpaces({ t, lang, onCompleteLevel, isCompleted, isUn
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-          {/* Canvas Display */}
           <div className="lg:col-span-5 flex justify-center">
             <div className="p-3 bg-slate-950 rounded-3xl border border-purple-500/40 shadow-neon-purple relative">
               <canvas
                 ref={canvasRef}
                 className="rounded-2xl w-64 h-64 sm:w-72 sm:h-72 shadow-inner"
               />
-              <span className="absolute bottom-5 left-5 text-[11px] font-mono px-2.5 py-1 rounded-lg bg-slate-900/90 text-cyan-300 border border-slate-800">
-                Mode: {activeChannel.toUpperCase()}
-              </span>
             </div>
           </div>
 
-          {/* Explanation & Grayscale Formula Deep Dive */}
           <div className="lg:col-span-7 space-y-4">
-            <div className="p-5 rounded-2xl bg-[#04060c] border border-cyan-500/30 space-y-2.5">
+            <div className="p-5 rounded-2xl bg-[#04060c] border border-cyan-500/30 space-y-2">
               <span className="text-xs font-bold text-cyan-400 block">
                 {t.level2.grayFormulaTitle}
               </span>
-              <div className="p-3 rounded-xl bg-slate-900/90 border border-slate-800 text-center font-mono text-sm sm:text-base font-bold text-emerald-400">
+              <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 text-center font-mono text-xs sm:text-sm font-bold text-emerald-400">
                 {t.level2.grayFormulaMath}
               </div>
               <p className="text-xs text-slate-300 leading-relaxed">
                 {t.level2.grayFormulaExplain}
               </p>
             </div>
-
-            <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-2 text-xs text-slate-400">
-              <span className="font-bold text-slate-200 block text-sm">💡 ما هو فضاء HSV / HSI؟</span>
-              <p className="leading-relaxed">
-                في خوارزميات الرؤية الحديثة، نفضل أحياناً تحويل RGB إلى <b>HSV (Hue, Saturation, Value)</b>:
-                حيث يمثل <b>Hue</b> نوع اللون النقي (مثل درجة الأحمر أو الأصفر)، ويمثل <b>Saturation</b> نقاء وتشبع اللون، بينما يمثل <b>Value</b> الإضاءة. هذا يسمح بالتعرف على الألوان حتى لو تغيرت إضاءة الغرفة!
-              </p>
-            </div>
           </div>
         </div>
       </div>
 
-      {/* Interactive Tool 2: The RGB Color Mixer & Luminance Calculator */}
+      {/* Interactive Tool 2: Color Mixer */}
       <div className="glass-panel rounded-3xl p-6 lg:p-8 border-cyan-500/20 space-y-6">
         <h3 className="text-lg font-bold text-white flex items-center gap-2">
           <Sliders className="w-5 h-5 text-teal-400" />
-          مختبر مزج الألوان وحساب الشدة اللحظي (Luminance Lab)
+          لعبة مزج الكشافات (شغل الكشافات وشوف اللون الناتج فوراً!)
         </h3>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-          {/* Sliders */}
-          <div className="lg:col-span-7 space-y-5">
-            {/* Red slider */}
-            <div className="space-y-1.5">
-              <div className="flex justify-between text-xs font-bold">
-                <span className="text-rose-400">أحمر (R):</span>
-                <span className="font-mono text-white">{mixR}</span>
+          <div className="lg:col-span-7 space-y-4">
+            <div className="space-y-1">
+              <div className="flex justify-between text-xs font-bold text-rose-400">
+                <span>🔴 كشاف الأحمر:</span>
+                <span className="font-mono">{mixR}</span>
               </div>
               <input
                 type="range"
@@ -211,15 +180,14 @@ export function Level2_ColorSpaces({ t, lang, onCompleteLevel, isCompleted, isUn
                 max="255"
                 value={mixR}
                 onChange={(e) => setMixR(Number(e.target.value))}
-                className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-rose-500"
+                className="w-full h-2 bg-slate-800 rounded-lg accent-rose-500 cursor-pointer"
               />
             </div>
 
-            {/* Green slider */}
-            <div className="space-y-1.5">
-              <div className="flex justify-between text-xs font-bold">
-                <span className="text-emerald-400">أخضر (G) [الأعلى وزناً]:</span>
-                <span className="font-mono text-white">{mixG}</span>
+            <div className="space-y-1">
+              <div className="flex justify-between text-xs font-bold text-emerald-400">
+                <span>🟢 كشاف الأخضر:</span>
+                <span className="font-mono">{mixG}</span>
               </div>
               <input
                 type="range"
@@ -227,15 +195,14 @@ export function Level2_ColorSpaces({ t, lang, onCompleteLevel, isCompleted, isUn
                 max="255"
                 value={mixG}
                 onChange={(e) => setMixG(Number(e.target.value))}
-                className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+                className="w-full h-2 bg-slate-800 rounded-lg accent-emerald-500 cursor-pointer"
               />
             </div>
 
-            {/* Blue slider */}
-            <div className="space-y-1.5">
-              <div className="flex justify-between text-xs font-bold">
-                <span className="text-blue-400">أزرق (B):</span>
-                <span className="font-mono text-white">{mixB}</span>
+            <div className="space-y-1">
+              <div className="flex justify-between text-xs font-bold text-blue-400">
+                <span>🔵 كشاف الأزرق:</span>
+                <span className="font-mono">{mixB}</span>
               </div>
               <input
                 type="range"
@@ -243,31 +210,25 @@ export function Level2_ColorSpaces({ t, lang, onCompleteLevel, isCompleted, isUn
                 max="255"
                 value={mixB}
                 onChange={(e) => setMixB(Number(e.target.value))}
-                className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                className="w-full h-2 bg-slate-800 rounded-lg accent-blue-500 cursor-pointer"
               />
             </div>
           </div>
 
-          {/* Color preview swatches */}
-          <div className="lg:col-span-5 flex flex-col sm:flex-row items-center justify-center gap-6">
-            {/* Color Swatch */}
+          <div className="lg:col-span-5 flex items-center justify-center gap-6">
             <div className="flex flex-col items-center gap-2">
               <div
-                className="w-24 h-24 rounded-2xl border-2 border-white/20 shadow-xl transition-all"
+                className="w-24 h-24 rounded-2xl border-2 border-white/20 shadow-xl"
                 style={{ backgroundColor: `rgb(${mixR}, ${mixG}, ${mixB})` }}
               />
-              <span className="text-xs font-bold text-slate-300">اللون الناتج</span>
-              <span className="text-[11px] font-mono text-slate-500">
-                ({mixR}, {mixG}, {mixB})
-              </span>
+              <span className="text-xs font-bold text-slate-300">اللون على الشاشة</span>
             </div>
 
             <span className="text-2xl text-slate-600 font-bold">➔</span>
 
-            {/* Grayscale Equivalence Swatch */}
             <div className="flex flex-col items-center gap-2">
               <div
-                className="w-24 h-24 rounded-2xl border-2 border-white/20 shadow-xl transition-all flex items-center justify-center font-mono font-bold text-xs"
+                className="w-24 h-24 rounded-2xl border-2 border-white/20 shadow-xl flex items-center justify-center font-mono font-bold text-xs"
                 style={{
                   backgroundColor: `rgb(${calculatedGray}, ${calculatedGray}, ${calculatedGray})`,
                   color: calculatedGray > 128 ? '#000' : '#fff'
@@ -275,16 +236,13 @@ export function Level2_ColorSpaces({ t, lang, onCompleteLevel, isCompleted, isUn
               >
                 {calculatedGray}
               </div>
-              <span className="text-xs font-bold text-cyan-400">المكافئ الرمادي</span>
-              <span className="text-[11px] font-mono text-slate-400">
-                Gray = {calculatedGray}
-              </span>
+              <span className="text-xs font-bold text-cyan-400">النسخة الرمادية</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Gamified Quiz Mission to Unlock Level 3 */}
+      {/* Gamified Mission Quiz */}
       <div className="glass-panel-glow rounded-3xl p-6 lg:p-8 border border-purple-500/30 space-y-6">
         <div className="flex items-center gap-3 pb-4 border-b border-slate-800">
           <div className="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center font-bold text-lg">
@@ -292,7 +250,7 @@ export function Level2_ColorSpaces({ t, lang, onCompleteLevel, isCompleted, isUn
           </div>
           <div>
             <h3 className="text-lg font-bold text-white">{t.level2.quizTitle}</h3>
-            <p className="text-xs text-slate-400">أجب عن التحدي لفتح المستوى 3 وكسب +100 XP!</p>
+            <p className="text-xs text-slate-400">أجب عن التحدي البسيط لفتح المرحلة 3 فوراً!</p>
           </div>
         </div>
 
@@ -300,8 +258,8 @@ export function Level2_ColorSpaces({ t, lang, onCompleteLevel, isCompleted, isUn
           <p className="text-sm font-bold text-slate-200">1. {t.level2.q1}</p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {[
-              { id: 1, text: t.level2.q1_opt1, exp: t.level2.q1_opt1_exp },
-              { id: 2, text: t.level2.q1_opt2, exp: t.level2.q1_opt2_exp, correct: true },
+              { id: 1, text: t.level2.q1_opt1, exp: t.level2.q1_opt1_exp, correct: true },
+              { id: 2, text: t.level2.q1_opt2, exp: t.level2.q1_opt2_exp },
               { id: 3, text: t.level2.q1_opt3, exp: t.level2.q1_opt3_exp }
             ].map((opt) => (
               <button
@@ -340,12 +298,12 @@ export function Level2_ColorSpaces({ t, lang, onCompleteLevel, isCompleted, isUn
             }`}
           >
             <Sparkles className="w-4 h-4" />
-            <span>تأكيد الإجابة وفتح المستوى 3 🚀</span>
+            <span>تأكيد الإجابة وفتح المرحلة 3 🚀</span>
           </button>
 
           {isCompleted && (
             <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5 bg-emerald-950/80 px-3 py-1.5 rounded-xl border border-emerald-500/40">
-              <CheckCircle2 className="w-4 h-4" /> تم فتح المستوى 3 بنجاح! (+100 XP)
+              <CheckCircle2 className="w-4 h-4" /> تم فتح المرحلة 3 بنجاح! (+100 XP)
             </span>
           )}
         </div>

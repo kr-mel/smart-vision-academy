@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Eye, ZoomIn, CheckCircle2, XCircle, ArrowRight, ArrowLeft, RefreshCw, Sparkles, Hash, MousePointer } from 'lucide-react';
+import { Eye, ZoomIn, CheckCircle2, RefreshCw, Sparkles, Hash, Lightbulb } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { soundFX } from '../utils/soundEffects';
 
 export function Level1_Pixels({ t, lang, onCompleteLevel, isCompleted, isUnlocked }) {
   const isRtl = lang === 'ar';
 
-  // 8x8 Grid state (initial smiley / eye shape)
+  // 8x8 Grid state (initial simple face)
   const [grid, setGrid] = useState([
     [0,   0,   0,   0,   0,   0,   0,   0],
     [0,  60, 180, 255, 255, 180,  60,   0],
@@ -30,13 +30,11 @@ export function Level1_Pixels({ t, lang, onCompleteLevel, isCompleted, isUnlocke
   const [q2Selected, setQ2Selected] = useState(null);
   const [quizSubmitted, setQuizSubmitted] = useState(false);
 
-  // Update cell intensity on click
   const handleCellClick = (r, c) => {
     soundFX.playClick();
     const newGrid = grid.map((row, ri) =>
       row.map((val, ci) => {
         if (ri === r && ci === c) {
-          // Cycle through or paint
           return paintValue;
         }
         return val;
@@ -60,7 +58,6 @@ export function Level1_Pixels({ t, lang, onCompleteLevel, isCompleted, isUnlocke
     ]);
   };
 
-  // Draw magnified image onto canvas
   useEffect(() => {
     const canvas = zoomCanvasRef.current;
     if (!canvas) return;
@@ -69,13 +66,11 @@ export function Level1_Pixels({ t, lang, onCompleteLevel, isCompleted, isUnlocke
     canvas.width = size;
     canvas.height = size;
 
-    // Draw high-res base drawing on offscreen
     const offscreen = document.createElement('canvas');
     offscreen.width = 16;
     offscreen.height = 16;
     const octx = offscreen.getContext('2d');
     
-    // Draw simple eye on 16x16
     octx.fillStyle = '#05070d';
     octx.fillRect(0, 0, 16, 16);
     octx.fillStyle = '#ffffff';
@@ -91,8 +86,7 @@ export function Level1_Pixels({ t, lang, onCompleteLevel, isCompleted, isUnlocke
     octx.arc(8, 8, 1.8, 0, Math.PI * 2);
     octx.fill();
 
-    // Now render on main canvas according to zoomFactor
-    ctx.imageSmoothingEnabled = false; // keep crisp pixelation!
+    ctx.imageSmoothingEnabled = false;
     const imgData = octx.getImageData(0, 0, 16, 16).data;
 
     const cellSize = size / 16;
@@ -107,13 +101,11 @@ export function Level1_Pixels({ t, lang, onCompleteLevel, isCompleted, isUnlocke
         ctx.fillStyle = `rgb(${r},${g},${b})`;
         ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
 
-        // Draw pixel grid line if zoomFactor >= 4
         if (zoomFactor >= 4) {
           ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
           ctx.lineWidth = 1;
           ctx.strokeRect(x * cellSize, y * cellSize, cellSize, cellSize);
 
-          // If high zoom (8 or 16), render actual number inside pixel!
           if (zoomFactor >= 8) {
             ctx.fillStyle = gray > 128 ? '#000000' : '#00f2fe';
             ctx.font = 'bold 8px monospace';
@@ -127,7 +119,7 @@ export function Level1_Pixels({ t, lang, onCompleteLevel, isCompleted, isUnlocke
   }, [zoomFactor]);
 
   const handleQuizSubmit = () => {
-    if (q1Selected === 2 && q2Selected === 1) {
+    if (q1Selected === 1 && q2Selected === 1) {
       soundFX.playSuccess();
       soundFX.playLevelUp();
       confetti({
@@ -144,7 +136,7 @@ export function Level1_Pixels({ t, lang, onCompleteLevel, isCompleted, isUnlocke
   };
 
   return (
-    <section id="level1" className="py-16 px-4 max-w-7xl mx-auto space-y-12">
+    <section id="level1" className="py-16 px-4 max-w-7xl mx-auto space-y-10">
       {/* Level Header */}
       <div className="space-y-4 text-center sm:text-start">
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-950/80 border border-cyan-500/40 text-cyan-400 text-xs font-bold shadow-neon-cyan">
@@ -159,32 +151,29 @@ export function Level1_Pixels({ t, lang, onCompleteLevel, isCompleted, isUnlocke
         </p>
       </div>
 
-      {/* Concept Card: The Pixel Definition */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="p-6 rounded-2xl glass-panel border-cyan-500/20 space-y-2">
-          <span className="text-3xl">⬛ ➔ ⬜</span>
-          <h3 className="font-bold text-white text-base">قيمة الضوء (Intensity)</h3>
-          <p className="text-slate-400 text-xs leading-relaxed">
-            القيم تتراوح من 0 (أسود مطلق) إلى 255 (أبيض ناصع) في النظام 8-bit (uint8).
-          </p>
+      {/* Everyday Life Analogy Box - Big, friendly and visual */}
+      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-cyan-950/50 via-slate-900 to-slate-900 border-2 border-cyan-500/40 shadow-neon-cyan space-y-4">
+        <div className="flex items-center gap-3 text-cyan-300 font-bold text-base sm:text-lg">
+          <Lightbulb className="w-6 h-6 text-amber-400 animate-bounce" />
+          <span>{t.level1.analogyTitle}</span>
         </div>
-        <div className="p-6 rounded-2xl glass-panel border-cyan-500/20 space-y-2">
-          <span className="text-3xl">📐</span>
-          <h3 className="font-bold text-white text-base">الإحداثيات I(x, y)</h3>
-          <p className="text-slate-400 text-xs leading-relaxed">
-            نحدد موضع أي بكسل عبر صفّه وعموده: المحور الأفقي X والمحور الرأسي Y.
-          </p>
-        </div>
-        <div className="p-6 rounded-2xl glass-panel border-cyan-500/20 space-y-2">
-          <span className="text-3xl">💾</span>
-          <h3 className="font-bold text-white text-base">المصفوفة في الذاكرة</h3>
-          <p className="text-slate-400 text-xs leading-relaxed">
-            صورة Full HD (1920×1080) تحتوي على أكثر من مليوني بكسل مرتبة رقمياً!
-          </p>
+        <p className="text-slate-200 text-sm sm:text-base leading-relaxed">
+          {t.level1.analogyDesc}
+        </p>
+        <div className="flex flex-wrap items-center gap-3 pt-2">
+          <div className="px-4 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono text-slate-300">
+            ⬛ <b>رقم 0</b> = لمبة مطفية (عتمة وسواد)
+          </div>
+          <div className="px-4 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono text-slate-300">
+            ◽ <b>رقم 128</b> = إضاءة نص ونص (رمادي ناعم)
+          </div>
+          <div className="px-4 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono text-slate-300">
+            ⬜ <b>رقم 255</b> = لمبة شغالة بأقصى قوة (أبيض ساطع)
+          </div>
         </div>
       </div>
 
-      {/* Interactive Tool 1: 8x8 Pixel Board & Real-time Matrix Inspector */}
+      {/* Interactive Tool 1: 8x8 Pixel Board & Live Matrix */}
       <div className="glass-panel-glow rounded-3xl p-6 lg:p-8 border border-cyan-500/30 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
           <div>
@@ -196,29 +185,33 @@ export function Level1_Pixels({ t, lang, onCompleteLevel, isCompleted, isUnlocke
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Color/Intensity Brush Picker */}
             <div className="flex items-center gap-1.5 bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-800 text-xs">
-              <span className="text-slate-400">فرشاة الرسم:</span>
-              {[0, 100, 180, 255].map((val) => (
+              <span className="text-slate-300 font-medium">لون الفرشاة:</span>
+              {[
+                { val: 0, label: 'أسود' },
+                { val: 128, label: 'رمادي' },
+                { val: 255, label: 'أبيض' }
+              ].map(({ val, label }) => (
                 <button
                   key={val}
                   onClick={() => setPaintValue(val)}
-                  className={`w-5 h-5 rounded-md border text-[10px] flex items-center justify-center font-mono ${
-                    paintValue === val ? 'border-cyan-400 scale-110 shadow-neon-cyan' : 'border-slate-700'
+                  className={`px-2.5 py-1 rounded-md text-xs font-bold border transition-all ${
+                    paintValue === val ? 'border-cyan-400 scale-110 shadow-neon-cyan ring-1 ring-cyan-400' : 'border-slate-700'
                   }`}
                   style={{
                     backgroundColor: `rgb(${val},${val},${val})`,
                     color: val > 128 ? '#000' : '#fff'
                   }}
-                  title={`قيمة ${val}`}
-                />
+                >
+                  {label} ({val})
+                </button>
               ))}
             </div>
 
             <button
               onClick={resetGrid}
-              className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-cyan-400 border border-slate-700 transition-all text-xs flex items-center gap-1"
-              title="إعادة ضبط الرسمة"
+              className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-cyan-400 border border-slate-700 transition-all text-xs"
+              title="إعادة الرسمة"
             >
               <RefreshCw className="w-4 h-4" />
             </button>
@@ -230,7 +223,6 @@ export function Level1_Pixels({ t, lang, onCompleteLevel, isCompleted, isUnlocke
           {/* Visual 8x8 Pixel Grid */}
           <div className="lg:col-span-6 flex flex-col items-center">
             <div className="relative p-3 bg-slate-950 rounded-2xl border border-cyan-500/40 shadow-inner">
-              {/* Coordinates Indicator */}
               <div className="grid grid-cols-8 gap-1.5 w-64 sm:w-80 aspect-square">
                 {grid.map((row, r) =>
                   row.map((val, c) => {
@@ -258,7 +250,6 @@ export function Level1_Pixels({ t, lang, onCompleteLevel, isCompleted, isUnlocke
               </div>
             </div>
 
-            {/* Hovered cell info badge */}
             <div className="mt-4 flex items-center gap-4 text-xs font-mono bg-slate-900/90 px-4 py-2 rounded-xl border border-slate-800">
               <span className="text-slate-400">
                 {t.level1.coords}: <b className="text-cyan-300">({hoveredCell.c}, {hoveredCell.r})</b>
@@ -270,14 +261,14 @@ export function Level1_Pixels({ t, lang, onCompleteLevel, isCompleted, isUnlocke
             </div>
           </div>
 
-          {/* Raw Numeric Matrix as Code */}
+          {/* Numbers Table */}
           <div className="lg:col-span-6 space-y-2">
             <span className="text-xs font-mono text-cyan-400 block font-semibold">
               {t.level1.matrixView}
             </span>
             <div className="bg-[#04060c] p-4 rounded-2xl border border-cyan-500/30 overflow-x-auto text-[11px] font-mono text-slate-300 shadow-inner">
-              <div className="text-slate-500 mb-1"># Python NumPy 2D Array Representation</div>
-              <span className="text-cyan-400">image_matrix</span> = np.array([
+              <div className="text-slate-500 mb-1"># جدول الأرقام اللي بيشوفه المعالج:</div>
+              [
               {grid.map((row, r) => (
                 <div
                   key={r}
@@ -299,16 +290,16 @@ export function Level1_Pixels({ t, lang, onCompleteLevel, isCompleted, isUnlocke
                   ))}],
                 </div>
               ))}
-              ], dtype=np.uint8)
+              ]
             </div>
-            <p className="text-[11px] text-slate-400 font-medium leading-relaxed">
-              💡 لاحظ كيف يترجم المعالج كل رقم مباشرة إلى نقطة ضوئية. تعديل رقم في المصفوفة يغير الصورة فوراً!
+            <p className="text-xs text-slate-400 font-medium leading-relaxed">
+              💡 شفت كيف؟ كل ما ترسم مربع أسود أو أبيض، الرقم بالجدول بتغير فوراً.. الكمبيوتر ما بيشوف ألوان زينا، بيشوف أرقام وبس!
             </p>
           </div>
         </div>
       </div>
 
-      {/* Interactive Tool 2: The Super Magnifier */}
+      {/* Interactive Tool 2: The Magnifier */}
       <div className="glass-panel rounded-3xl p-6 lg:p-8 border-cyan-500/20 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
           <div>
@@ -329,7 +320,7 @@ export function Level1_Pixels({ t, lang, onCompleteLevel, isCompleted, isUnlocke
                     soundFX.playClick();
                     setZoomFactor(zf);
                   }}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-mono font-bold transition-all ${
+                  className={`px-3 py-1 rounded-lg text-xs font-mono font-bold transition-all ${
                     zoomFactor === zf
                       ? 'bg-purple-600 text-white shadow-neon-purple scale-105'
                       : 'text-slate-400 hover:text-slate-200'
@@ -348,31 +339,20 @@ export function Level1_Pixels({ t, lang, onCompleteLevel, isCompleted, isUnlocke
               ref={zoomCanvasRef}
               className="rounded-xl w-64 h-64 shadow-inner"
             />
-            {zoomFactor >= 8 && (
-              <span className="absolute top-4 right-4 text-[10px] font-mono px-2 py-0.5 rounded bg-purple-950/90 text-purple-300 border border-purple-500/50">
-                Discrete Matrix Exposed
-              </span>
-            )}
           </div>
 
           <div className="max-w-md space-y-3 text-xs sm:text-sm text-slate-300">
             <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-1.5">
-              <span className="font-bold text-purple-400 block text-sm">ماذا نتعلم من التكبير؟</span>
-              <p className="text-slate-400 leading-relaxed">
-                عند تكبير الصورة إلى 8x أو 16x، تختفي المنحنيات "الناعمة" وتتحول لشبكة مربعة واضحة. داخل كل مربع يظهر الرقم الفعلي لشدة الإضاءة!
-              </p>
-            </div>
-            <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-1.5">
-              <span className="font-bold text-cyan-400 block text-sm">الدقة المكانية (Spatial Resolution)</span>
-              <p className="text-slate-400 leading-relaxed">
-                كلما زاد عدد البكسلات في نفس المساحة (مثلاً 4K مقابل 720p)، صغرت المربعات وأصبحت غير مرئية للعين البشرية، فتبدو الصورة كأنها حقيقية!
+              <span className="font-bold text-purple-400 block text-sm">شو بنتعلم من التكبير؟</span>
+              <p className="text-slate-300 leading-relaxed">
+                أي رسمة ناعمة بتشوفها بشاشتك هي بالواقع مربعات مصفوفة جنب بعض.. لما تكبّرها بتبين المربعات الحقيقية، وجوا كل مربع في رقم إضاءة بين 0 و 255!
               </p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Gamified Quiz Mission to Unlock Level 2 */}
+      {/* Gamified Mission Quiz */}
       <div className="glass-panel-glow rounded-3xl p-6 lg:p-8 border border-emerald-500/30 space-y-6">
         <div className="flex items-center gap-3 pb-4 border-b border-slate-800">
           <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-lg">
@@ -380,7 +360,7 @@ export function Level1_Pixels({ t, lang, onCompleteLevel, isCompleted, isUnlocke
           </div>
           <div>
             <h3 className="text-lg font-bold text-white">{t.level1.quizTitle}</h3>
-            <p className="text-xs text-slate-400">أجب عن السؤالين لربح +100 XP وفتح المستوى 2!</p>
+            <p className="text-xs text-slate-400">جاوب ع السؤالين البسيطين لتفتح المرحلة 2 فوراً!</p>
           </div>
         </div>
 
@@ -389,8 +369,8 @@ export function Level1_Pixels({ t, lang, onCompleteLevel, isCompleted, isUnlocke
           <p className="text-sm font-bold text-slate-200">1. {t.level1.q1}</p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {[
-              { id: 1, text: t.level1.q1_opt1, exp: t.level1.q1_opt1_exp },
-              { id: 2, text: t.level1.q1_opt2, exp: t.level1.q1_opt2_exp, correct: true },
+              { id: 1, text: t.level1.q1_opt1, exp: t.level1.q1_opt1_exp, correct: true },
+              { id: 2, text: t.level1.q1_opt2, exp: t.level1.q1_opt2_exp },
               { id: 3, text: t.level1.q1_opt3, exp: t.level1.q1_opt3_exp }
             ].map((opt) => (
               <button
@@ -451,7 +431,7 @@ export function Level1_Pixels({ t, lang, onCompleteLevel, isCompleted, isUnlocke
           </div>
         </div>
 
-        {/* Submit Button */}
+        {/* Submit */}
         <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-slate-800">
           <button
             onClick={handleQuizSubmit}
@@ -463,12 +443,12 @@ export function Level1_Pixels({ t, lang, onCompleteLevel, isCompleted, isUnlocke
             }`}
           >
             <Sparkles className="w-4 h-4" />
-            <span>تحقق من الإجابات وفتح المستوى التالي 🚀</span>
+            <span>تأكيد الإجابة وفتح المرحلة 2 🚀</span>
           </button>
 
           {isCompleted && (
             <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5 bg-emerald-950/80 px-3 py-1.5 rounded-xl border border-emerald-500/40">
-              <CheckCircle2 className="w-4 h-4" /> تم فتح المستوى 2 بنجاح! (+100 XP)
+              <CheckCircle2 className="w-4 h-4" /> تم فتح المرحلة 2 بنجاح! (+100 XP)
             </span>
           )}
         </div>

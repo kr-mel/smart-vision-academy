@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { BarChart3, Sliders, Wand2, RefreshCw, CheckCircle2, Sparkles, Sun, Eye, Contrast } from 'lucide-react';
+import { BarChart3, Sliders, Wand2, RefreshCw, CheckCircle2, Sparkles, Sun, Contrast, Lightbulb } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { soundFX } from '../utils/soundEffects';
 import {
@@ -9,8 +9,7 @@ import {
   applyThreshold,
   invertImage,
   computeHistogram,
-  equalizeHistogram,
-  cloneImageData
+  equalizeHistogram
 } from '../utils/imageAlgorithms';
 
 export function Level3_PointOps({ t, lang, onCompleteLevel, isCompleted, isUnlocked }) {
@@ -19,19 +18,16 @@ export function Level3_PointOps({ t, lang, onCompleteLevel, isCompleted, isUnloc
   const imgCanvasRef = useRef(null);
   const histCanvasRef = useRef(null);
 
-  // Sliders and controls
-  const [brightness, setBrightness] = useState(0); // -100 to 100
-  const [contrast, setContrast] = useState(1.0); // 0.2 to 2.5
+  const [brightness, setBrightness] = useState(0);
+  const [contrast, setContrast] = useState(1.0);
   const [thresholdEnabled, setThresholdEnabled] = useState(false);
   const [thresholdVal, setThresholdVal] = useState(128);
   const [isInverted, setIsInverted] = useState(false);
   const [isEqualized, setIsEqualized] = useState(false);
 
-  // Quiz state
   const [q1Selected, setQ1Selected] = useState(null);
   const [quizSubmitted, setQuizSubmitted] = useState(false);
 
-  // Process image and draw histogram
   useEffect(() => {
     const imgCanvas = imgCanvasRef.current;
     const histCanvas = histCanvasRef.current;
@@ -41,59 +37,28 @@ export function Level3_PointOps({ t, lang, onCompleteLevel, isCompleted, isUnloc
     imgCanvas.height = 280;
     const ctx = imgCanvas.getContext('2d');
 
-    // 1. Draw base test graphic
     drawPresetSample(imgCanvas, 'coins');
-
-    // 2. Fetch ImageData and apply transformations
     let imgData = ctx.getImageData(0, 0, imgCanvas.width, imgCanvas.height);
 
-    if (brightness !== 0) {
-      adjustBrightness(imgData, brightness);
-    }
-
-    if (contrast !== 1.0) {
-      adjustContrast(imgData, contrast);
-    }
-
-    if (isInverted) {
-      invertImage(imgData);
-    }
-
-    if (isEqualized) {
-      equalizeHistogram(imgData);
-    }
-
-    if (thresholdEnabled) {
-      applyThreshold(imgData, thresholdVal);
-    }
+    if (brightness !== 0) adjustBrightness(imgData, brightness);
+    if (contrast !== 1.0) adjustContrast(imgData, contrast);
+    if (isInverted) invertImage(imgData);
+    if (isEqualized) equalizeHistogram(imgData);
+    if (thresholdEnabled) applyThreshold(imgData, thresholdVal);
 
     ctx.putImageData(imgData, 0, 0);
 
-    // 3. Compute and Draw Live Histogram
     const { gray } = computeHistogram(imgData);
     const hctx = histCanvas.getContext('2d');
     histCanvas.width = 280;
     histCanvas.height = 100;
 
-    // Background
     hctx.fillStyle = '#060912';
     hctx.fillRect(0, 0, histCanvas.width, histCanvas.height);
 
-    // Grid lines
-    hctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
-    hctx.lineWidth = 1;
-    for (let x = 0; x < histCanvas.width; x += 70) {
-      hctx.beginPath();
-      hctx.moveTo(x, 0);
-      hctx.lineTo(x, histCanvas.height);
-      hctx.stroke();
-    }
-
-    // Find max frequency for normalization
     const maxFreq = Math.max(...gray, 1);
     const barWidth = histCanvas.width / 256;
 
-    // Gradient for histogram bars
     const gradient = hctx.createLinearGradient(0, histCanvas.height, 0, 0);
     gradient.addColorStop(0, '#00f2fe');
     gradient.addColorStop(1, '#10b981');
@@ -118,7 +83,7 @@ export function Level3_PointOps({ t, lang, onCompleteLevel, isCompleted, isUnloc
   };
 
   const handleQuizSubmit = () => {
-    if (q1Selected === 2) {
+    if (q1Selected === 1) {
       soundFX.playSuccess();
       soundFX.playLevelUp();
       confetti({
@@ -135,7 +100,7 @@ export function Level3_PointOps({ t, lang, onCompleteLevel, isCompleted, isUnloc
   };
 
   return (
-    <section id="level3" className="py-16 px-4 max-w-7xl mx-auto space-y-12">
+    <section id="level3" className="py-16 px-4 max-w-7xl mx-auto space-y-10">
       {/* Level Header */}
       <div className="space-y-4 text-center sm:text-start">
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-emerald-400 text-xs font-bold shadow-neon-emerald">
@@ -150,39 +115,15 @@ export function Level3_PointOps({ t, lang, onCompleteLevel, isCompleted, isUnloc
         </p>
       </div>
 
-      {/* Point Ops Equations Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-4 rounded-2xl glass-panel border-cyan-500/20 space-y-1.5">
-          <span className="text-xs font-bold text-cyan-400 block">السطوع (Brightness)</span>
-          <div className="font-mono text-xs text-white font-bold bg-slate-900 p-2 rounded-lg text-center">
-            g(x,y) = f(x,y) + c
-          </div>
-          <p className="text-[11px] text-slate-400">إزاحة الرسم البياني يميناً أو يساراً.</p>
+      {/* Everyday Life Analogy Box */}
+      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-emerald-950/50 via-slate-900 to-slate-900 border-2 border-emerald-500/40 shadow-neon-emerald space-y-4">
+        <div className="flex items-center gap-3 text-emerald-300 font-bold text-base sm:text-lg">
+          <Lightbulb className="w-6 h-6 text-amber-400 animate-bounce" />
+          <span>{t.level3.analogyTitle}</span>
         </div>
-
-        <div className="p-4 rounded-2xl glass-panel border-emerald-500/20 space-y-1.5">
-          <span className="text-xs font-bold text-emerald-400 block">التباين (Contrast)</span>
-          <div className="font-mono text-xs text-white font-bold bg-slate-900 p-2 rounded-lg text-center">
-            g(x,y) = α × f(x,y)
-          </div>
-          <p className="text-[11px] text-slate-400">توسيع الفارق بين الظلال والأضواء.</p>
-        </div>
-
-        <div className="p-4 rounded-2xl glass-panel border-purple-500/20 space-y-1.5">
-          <span className="text-xs font-bold text-purple-400 block">العكس (Negative)</span>
-          <div className="font-mono text-xs text-white font-bold bg-slate-900 p-2 rounded-lg text-center">
-            g(x,y) = 255 - f(x,y)
-          </div>
-          <p className="text-[11px] text-slate-400">قلب الأبيض لأسود والأسود لأبيض.</p>
-        </div>
-
-        <div className="p-4 rounded-2xl glass-panel border-amber-500/20 space-y-1.5">
-          <span className="text-xs font-bold text-amber-400 block">العتبة (Thresholding)</span>
-          <div className="font-mono text-xs text-white font-bold bg-slate-900 p-2 rounded-lg text-center">
-            g = 255 if f ≥ T else 0
-          </div>
-          <p className="text-[11px] text-slate-400">تحويل الصورة إلى ثنائية (Binary 0 or 255).</p>
-        </div>
+        <p className="text-slate-200 text-sm sm:text-base leading-relaxed">
+          {t.level3.analogyDesc}
+        </p>
       </div>
 
       {/* Interactive Tool: Live Image & Dynamic Histogram */}
@@ -228,8 +169,8 @@ export function Level3_PointOps({ t, lang, onCompleteLevel, isCompleted, isUnloc
 
             <button
               onClick={resetAll}
-              className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition-all text-xs"
-              title="إعادة ضبط الكل"
+              className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700"
+              title="إعادة ضبط"
             >
               <RefreshCw className="w-4 h-4" />
             </button>
@@ -237,9 +178,7 @@ export function Level3_PointOps({ t, lang, onCompleteLevel, isCompleted, isUnloc
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-          {/* Left / Top: Interactive Image & Live Histogram Canvas */}
           <div className="lg:col-span-5 flex flex-col items-center gap-4">
-            {/* Image Canvas */}
             <div className="p-3 bg-slate-950 rounded-3xl border border-emerald-500/40 shadow-neon-emerald">
               <canvas
                 ref={imgCanvasRef}
@@ -247,26 +186,23 @@ export function Level3_PointOps({ t, lang, onCompleteLevel, isCompleted, isUnloc
               />
             </div>
 
-            {/* Histogram Canvas */}
             <div className="w-64 sm:w-72 bg-slate-950 p-3 rounded-2xl border border-slate-800 space-y-1.5">
               <div className="flex justify-between items-center text-[10px] font-mono text-slate-400">
-                <span>0 (Black)</span>
-                <span className="text-cyan-400 font-bold">Histogram Frequency</span>
-                <span>255 (White)</span>
+                <span>0 (عتمة)</span>
+                <span className="text-cyan-400 font-bold">ميزان الإضاءة (Histogram)</span>
+                <span>255 (بياض)</span>
               </div>
               <canvas
                 ref={histCanvasRef}
                 className="rounded-xl w-full h-20 shadow-inner"
               />
-              <span className="text-[10px] text-slate-500 block text-center">
+              <span className="text-[10px] text-slate-400 block text-center">
                 {t.level3.histExplanation}
               </span>
             </div>
           </div>
 
-          {/* Right: Sliders Panel */}
-          <div className="lg:col-span-7 space-y-6">
-            {/* Brightness Slider */}
+          <div className="lg:col-span-7 space-y-4">
             <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-2">
               <div className="flex justify-between text-xs font-bold">
                 <span className="text-cyan-400 flex items-center gap-1.5">
@@ -283,14 +219,10 @@ export function Level3_PointOps({ t, lang, onCompleteLevel, isCompleted, isUnloc
                 max="100"
                 value={brightness}
                 onChange={(e) => setBrightness(Number(e.target.value))}
-                className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400"
+                className="w-full h-2 bg-slate-800 rounded-lg accent-cyan-400 cursor-pointer"
               />
-              <span className="text-[10px] text-slate-400 block">
-                تعديل السطوع يزيح كل أعمدة الهيستوجرام أفقياً.
-              </span>
             </div>
 
-            {/* Contrast Slider */}
             <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-2">
               <div className="flex justify-between text-xs font-bold">
                 <span className="text-emerald-400 flex items-center gap-1.5">
@@ -308,14 +240,10 @@ export function Level3_PointOps({ t, lang, onCompleteLevel, isCompleted, isUnloc
                 step="0.1"
                 value={contrast}
                 onChange={(e) => setContrast(Number(e.target.value))}
-                className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-400"
+                className="w-full h-2 bg-slate-800 rounded-lg accent-emerald-400 cursor-pointer"
               />
-              <span className="text-[10px] text-slate-400 block">
-                زيادة التباين تمدد أعمدة الهيستوجرام بعيداً عن المنتصف لتزيد وضوح الفروقات.
-              </span>
             </div>
 
-            {/* Thresholding Slider */}
             <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-2">
               <div className="flex justify-between items-center text-xs font-bold">
                 <div className="flex items-center gap-2">
@@ -330,11 +258,11 @@ export function Level3_PointOps({ t, lang, onCompleteLevel, isCompleted, isUnloc
                     className="w-4 h-4 accent-amber-500 rounded cursor-pointer"
                   />
                   <label htmlFor="threshCheck" className="text-amber-400 cursor-pointer">
-                    تفعيل العتبة الثنائية (Thresholding)
+                    تحويل الصورة لأبيض وأسود صريح فقط
                   </label>
                 </div>
                 <span className="font-mono text-white bg-slate-950 px-2 py-0.5 rounded border border-slate-800">
-                  T = {thresholdVal}
+                  {thresholdVal}
                 </span>
               </div>
               <input
@@ -344,19 +272,16 @@ export function Level3_PointOps({ t, lang, onCompleteLevel, isCompleted, isUnloc
                 disabled={!thresholdEnabled}
                 value={thresholdVal}
                 onChange={(e) => setThresholdVal(Number(e.target.value))}
-                className={`w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500 ${
+                className={`w-full h-2 bg-slate-800 rounded-lg accent-amber-500 ${
                   !thresholdEnabled && 'opacity-40 cursor-not-allowed'
                 }`}
               />
-              <span className="text-[10px] text-slate-400 block">
-                أي بكسل أفتح من {thresholdVal} يصبح 255 (أبيض)، وأي بكسل أغمق يصبح 0 (أسود).
-              </span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Gamified Quiz Mission to Unlock Level 4 */}
+      {/* Gamified Mission Quiz */}
       <div className="glass-panel-glow rounded-3xl p-6 lg:p-8 border border-emerald-500/30 space-y-6">
         <div className="flex items-center gap-3 pb-4 border-b border-slate-800">
           <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-lg">
@@ -364,7 +289,7 @@ export function Level3_PointOps({ t, lang, onCompleteLevel, isCompleted, isUnloc
           </div>
           <div>
             <h3 className="text-lg font-bold text-white">{t.level3.quizTitle}</h3>
-            <p className="text-xs text-slate-400">أجب عن التحدي لفتح المستوى 4 وكسب +100 XP!</p>
+            <p className="text-xs text-slate-400">أجب عن التحدي البسيط لفتح المرحلة 4 فوراً!</p>
           </div>
         </div>
 
@@ -372,8 +297,8 @@ export function Level3_PointOps({ t, lang, onCompleteLevel, isCompleted, isUnloc
           <p className="text-sm font-bold text-slate-200">1. {t.level3.q1}</p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {[
-              { id: 1, text: t.level3.q1_opt1, exp: t.level3.q1_opt1_exp },
-              { id: 2, text: t.level3.q1_opt2, exp: t.level3.q1_opt2_exp, correct: true },
+              { id: 1, text: t.level3.q1_opt1, exp: t.level3.q1_opt1_exp, correct: true },
+              { id: 2, text: t.level3.q1_opt2, exp: t.level3.q1_opt2_exp },
               { id: 3, text: t.level3.q1_opt3, exp: t.level3.q1_opt3_exp }
             ].map((opt) => (
               <button
@@ -412,12 +337,12 @@ export function Level3_PointOps({ t, lang, onCompleteLevel, isCompleted, isUnloc
             }`}
           >
             <Sparkles className="w-4 h-4" />
-            <span>تأكيد الإجابة وفتح المستوى 4 🚀</span>
+            <span>تأكيد الإجابة وفتح المرحلة 4 🚀</span>
           </button>
 
           {isCompleted && (
             <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5 bg-emerald-950/80 px-3 py-1.5 rounded-xl border border-emerald-500/40">
-              <CheckCircle2 className="w-4 h-4" /> تم فتح المستوى 4 بنجاح! (+100 XP)
+              <CheckCircle2 className="w-4 h-4" /> تم فتح المرحلة 4 بنجاح! (+100 XP)
             </span>
           )}
         </div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Shapes, Minimize2, Maximize2, RefreshCw, CheckCircle2, Sparkles, Binary } from 'lucide-react';
+import { Shapes, Minimize2, Maximize2, RefreshCw, CheckCircle2, Sparkles, Binary, Lightbulb } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { soundFX } from '../utils/soundEffects';
 import {
@@ -17,11 +17,9 @@ export function Level6_Morphology({ t, lang, onCompleteLevel, isCompleted, isUnl
   const [operationCount, setOperationCount] = useState(0);
   const [lastOp, setLastOp] = useState('original');
 
-  // Quiz state
   const [q1Selected, setQ1Selected] = useState(null);
   const [quizSubmitted, setQuizSubmitted] = useState(false);
 
-  // Initial draw: draw binary shapes with test noise
   const drawBaseShapes = () => {
     const canvas = morphCanvasRef.current;
     if (!canvas) return;
@@ -29,13 +27,11 @@ export function Level6_Morphology({ t, lang, onCompleteLevel, isCompleted, isUnl
     canvas.height = 280;
     const ctx = canvas.getContext('2d');
 
-    // Draw high-contrast shapes
     drawPresetSample(canvas, 'shapes');
     const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     toGrayscale(imgData);
-    applyThreshold(imgData, 128); // Pure binary 0 or 255
+    applyThreshold(imgData, 128);
 
-    // Add tiny noise dots & a hole
     const data = imgData.data;
     const w = canvas.width;
 
@@ -124,7 +120,7 @@ export function Level6_Morphology({ t, lang, onCompleteLevel, isCompleted, isUnl
   };
 
   const handleQuizSubmit = () => {
-    if (q1Selected === 2) {
+    if (q1Selected === 1) {
       soundFX.playSuccess();
       soundFX.playLevelUp();
       confetti({
@@ -141,7 +137,7 @@ export function Level6_Morphology({ t, lang, onCompleteLevel, isCompleted, isUnl
   };
 
   return (
-    <section id="level6" className="py-16 px-4 max-w-7xl mx-auto space-y-12">
+    <section id="level6" className="py-16 px-4 max-w-7xl mx-auto space-y-10">
       {/* Level Header */}
       <div className="space-y-4 text-center sm:text-start">
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-950/80 border border-purple-500/40 text-purple-400 text-xs font-bold shadow-neon-purple">
@@ -156,47 +152,15 @@ export function Level6_Morphology({ t, lang, onCompleteLevel, isCompleted, isUnl
         </p>
       </div>
 
-      {/* Morphological Concepts 4 Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-5 rounded-2xl glass-panel border-rose-500/30 space-y-2">
-          <div className="flex items-center gap-2 text-rose-400 font-bold text-sm">
-            <Minimize2 className="w-4 h-4" />
-            <span>التآكل (Erosion - ⊖)</span>
-          </div>
-          <p className="text-slate-400 text-xs leading-relaxed">
-            يأكل حدود الأشكال البيضاء، مما يقلص حجمها ويمحو النقاط الصغيرة المعزولة تماماً.
-          </p>
+      {/* Everyday Life Analogy Box */}
+      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-purple-950/50 via-slate-900 to-slate-900 border-2 border-purple-500/40 shadow-neon-purple space-y-4">
+        <div className="flex items-center gap-3 text-purple-300 font-bold text-base sm:text-lg">
+          <Lightbulb className="w-6 h-6 text-amber-400 animate-bounce" />
+          <span>{t.level6.analogyTitle}</span>
         </div>
-
-        <div className="p-5 rounded-2xl glass-panel border-emerald-500/30 space-y-2">
-          <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm">
-            <Maximize2 className="w-4 h-4" />
-            <span>التمدد (Dilation - ⊕)</span>
-          </div>
-          <p className="text-slate-400 text-xs leading-relaxed">
-            يضيف بكسلات على حدود الأشكال البيضاء، فيسد الثقوب الداخلية ويوصل الشقوق المفصولة.
-          </p>
-        </div>
-
-        <div className="p-5 rounded-2xl glass-panel border-cyan-500/30 space-y-2">
-          <div className="flex items-center gap-2 text-cyan-400 font-bold text-sm">
-            <Binary className="w-4 h-4" />
-            <span>الفتح (Opening: ⊖ ➔ ⊕)</span>
-          </div>
-          <p className="text-slate-400 text-xs leading-relaxed">
-            تآكل يليه تمدد؛ يزيل الشوائب الخارجية والنتوءات الصغيرة دون تقليص حجم الجسم الأصلي.
-          </p>
-        </div>
-
-        <div className="p-5 rounded-2xl glass-panel border-amber-500/30 space-y-2">
-          <div className="flex items-center gap-2 text-amber-400 font-bold text-sm">
-            <Binary className="w-4 h-4" />
-            <span>الإغلاق (Closing: ⊕ ➔ ⊖)</span>
-          </div>
-          <p className="text-slate-400 text-xs leading-relaxed">
-            تمدد يليه تآكل؛ يسد الفجوات والثقوب الداخلية الدقيقة دون تضخيم الجسم الأصلي.
-          </p>
-        </div>
+        <p className="text-slate-200 text-sm sm:text-base leading-relaxed">
+          {t.level6.analogyDesc}
+        </p>
       </div>
 
       {/* Interactive Morphology Studio */}
@@ -212,31 +176,31 @@ export function Level6_Morphology({ t, lang, onCompleteLevel, isCompleted, isUnl
 
           <div className="flex flex-wrap items-center gap-2">
             <button
-              onClick={handleErosion}
-              className="px-3 py-1.5 rounded-xl bg-rose-950/60 border border-rose-500/40 text-rose-300 hover:bg-rose-900/60 text-xs font-bold transition-all"
-            >
-              {t.level6.applyErosionBtn}
-            </button>
-
-            <button
-              onClick={handleDilation}
-              className="px-3 py-1.5 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 hover:bg-emerald-900/60 text-xs font-bold transition-all"
-            >
-              {t.level6.applyDilationBtn}
-            </button>
-
-            <button
               onClick={handleOpening}
-              className="px-3 py-1.5 rounded-xl bg-cyan-950/60 border border-cyan-500/40 text-cyan-300 hover:bg-cyan-900/60 text-xs font-bold transition-all"
+              className="px-3.5 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-black text-xs shadow-neon-cyan transition-all"
             >
               {t.level6.applyOpeningBtn}
             </button>
 
             <button
               onClick={handleClosing}
-              className="px-3 py-1.5 rounded-xl bg-amber-950/60 border border-amber-500/40 text-amber-300 hover:bg-amber-900/60 text-xs font-bold transition-all"
+              className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-neon-amber transition-all"
             >
               {t.level6.applyClosingBtn}
+            </button>
+
+            <button
+              onClick={handleErosion}
+              className="px-3 py-1.5 rounded-xl bg-rose-950/60 border border-rose-500/40 text-rose-300 text-xs font-bold"
+            >
+              {t.level6.applyErosionBtn}
+            </button>
+
+            <button
+              onClick={handleDilation}
+              className="px-3 py-1.5 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 text-xs font-bold"
+            >
+              {t.level6.applyDilationBtn}
             </button>
 
             <button
@@ -244,58 +208,24 @@ export function Level6_Morphology({ t, lang, onCompleteLevel, isCompleted, isUnl
                 soundFX.playClick();
                 drawBaseShapes();
               }}
-              className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700"
-              title={t.level6.resetShapes}
+              className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700"
             >
               <RefreshCw className="w-4 h-4" />
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-          {/* Canvas Display */}
-          <div className="lg:col-span-5 flex justify-center">
-            <div className="p-3 bg-slate-950 rounded-3xl border border-purple-500/40 shadow-neon-purple relative">
-              <canvas
-                ref={morphCanvasRef}
-                className="rounded-2xl w-64 h-64 sm:w-72 sm:h-72 shadow-inner"
-              />
-              <span className="absolute bottom-5 left-5 text-[10px] font-mono px-2 py-0.5 rounded bg-slate-900/90 text-purple-300 border border-slate-800">
-                آخر عملية: {lastOp.toUpperCase()}
-              </span>
-            </div>
-          </div>
-
-          {/* Observations and Instructions */}
-          <div className="lg:col-span-7 space-y-4 text-xs sm:text-sm text-slate-300">
-            <div className="p-4 rounded-2xl bg-[#04060c] border border-cyan-500/30 space-y-2 font-mono">
-              <span className="text-cyan-400 font-bold block text-xs">
-                # Structuring Element 3×3 Cross:
-              </span>
-              <div className="text-emerald-400 text-xs">
-                kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
-              </div>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-2">
-              <span className="font-bold text-white block text-sm">💡 تجارب بصرية ممتعة قم بها الآن:</span>
-              <ul className="space-y-1.5 text-slate-400 text-xs list-disc list-inside">
-                <li>
-                  انقر على <b>الفتح (Opening)</b>: لاحظ كيف تختفي النقاط المعزولة الشاردة على الفور مع بقاء الأشكال الأصلية!
-                </li>
-                <li>
-                  انقر على <b>الإغلاق (Closing)</b>: لاحظ كيف يُسد الثقب الأسود الموجود داخل المربع تلقائياً!
-                </li>
-                <li>
-                  انقر على <b>التآكل (Erosion)</b> عدة مرات متتالية لمشاهدة انكماش الأشكال حتى تتلاشى.
-                </li>
-              </ul>
-            </div>
+        <div className="flex justify-center">
+          <div className="p-3 bg-slate-950 rounded-3xl border border-purple-500/40 shadow-neon-purple">
+            <canvas
+              ref={morphCanvasRef}
+              className="rounded-2xl w-64 h-64 sm:w-72 sm:h-72 shadow-inner"
+            />
           </div>
         </div>
       </div>
 
-      {/* Gamified Quiz Mission to Complete Course */}
+      {/* Gamified Final Quiz */}
       <div className="glass-panel-glow rounded-3xl p-6 lg:p-8 border border-purple-500/30 space-y-6">
         <div className="flex items-center gap-3 pb-4 border-b border-slate-800">
           <div className="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center font-bold text-lg">
@@ -303,7 +233,7 @@ export function Level6_Morphology({ t, lang, onCompleteLevel, isCompleted, isUnl
           </div>
           <div>
             <h3 className="text-lg font-bold text-white">{t.level6.quizTitle}</h3>
-            <p className="text-xs text-slate-400">أجب عن السؤال الأخير لفتح وسام التخرج وكسب +100 XP!</p>
+            <p className="text-xs text-slate-400">التحدي البسيط الأخير لفتح وسام التخرج!</p>
           </div>
         </div>
 
@@ -311,8 +241,8 @@ export function Level6_Morphology({ t, lang, onCompleteLevel, isCompleted, isUnl
           <p className="text-sm font-bold text-slate-200">1. {t.level6.q1}</p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {[
-              { id: 1, text: t.level6.q1_opt1, exp: t.level6.q1_opt1_exp },
-              { id: 2, text: t.level6.q1_opt2, exp: t.level6.q1_opt2_exp, correct: true },
+              { id: 1, text: t.level6.q1_opt1, exp: t.level6.q1_opt1_exp, correct: true },
+              { id: 2, text: t.level6.q1_opt2, exp: t.level6.q1_opt2_exp },
               { id: 3, text: t.level6.q1_opt3, exp: t.level6.q1_opt3_exp }
             ].map((opt) => (
               <button
@@ -356,7 +286,7 @@ export function Level6_Morphology({ t, lang, onCompleteLevel, isCompleted, isUnl
 
           {isCompleted && (
             <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5 bg-emerald-950/80 px-3 py-1.5 rounded-xl border border-emerald-500/40">
-              <CheckCircle2 className="w-4 h-4" /> مبارك! أكملت جميع مستويات المادة بنجاح! (+100 XP)
+              <CheckCircle2 className="w-4 h-4" /> مبارك! أكملت كل المراحل وفهمت أسرار الرؤية الحاسوبية! (+100 XP)
             </span>
           )}
         </div>
